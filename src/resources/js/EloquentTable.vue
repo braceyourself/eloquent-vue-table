@@ -121,6 +121,12 @@
                         this.data.prev = (from_page.current_page === this.data.current_page - 1 || from_page.next && from_page.next.current_page === this.data.current_page - 1) ? from_page.next : null;
                 }
 
+                this.$router.replace({
+                    query: {
+                        page:this.data.current_page
+                    }
+                });
+
 
                 this.loadMetaPages();
             },
