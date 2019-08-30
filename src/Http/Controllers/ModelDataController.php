@@ -5,32 +5,51 @@ namespace Braceyourself\EloquentVueTable\Http\Controllers;
 use Braceyourself\EloquentVueTable\Http\Requests\EloquentTableDataRequest;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class ModelDataController extends Controller
 {
 
-    public function index(EloquentTableDataRequest $request, $model){
+    public function index(EloquentTableDataRequest $request, $model)
+    {
         /** @var Model $class */
         $class = $this->getModelClass($model);
 
         return $class::paginate($request->count);
     }
 
-    public function store(){
-        
-    }
-    
-    public function show(){
-        
-    }
-
-    public function update(){
+    public function store()
+    {
 
     }
 
-    public function destroy(){
+    public function show()
+    {
+
+    }
+
+    public function update()
+    {
+
+    }
+
+    public function destroy(Request $request, $model, $id)
+    {
+        /** @var Model $instance */
+        $instance = $this->getInstance($model, $id);
+
+        try {
+            $instance->delete();
+        } catch (\Exception $e) {
+            $message = "Couldn't delete row";
+        }
+
+        return response([
+            'message' => $message ?? "$model deleted.",
+            'instance' => $instance,
+        ]);
 
     }
 
@@ -71,6 +90,12 @@ class ModelDataController extends Controller
     private function getModelClass($model)
     {
         return "App\\" . Str::singular(Str::studly($model));
+    }
+
+    private function getInstance($model, $id)
+    {
+        $class = $this->getModelClass($model);
+        return $class::find($id);
     }
 
 }
