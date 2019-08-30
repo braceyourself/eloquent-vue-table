@@ -11,6 +11,10 @@ use Illuminate\Support\Str;
 
 class ModelDataController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth:api');
+    }
 
     public function index(EloquentTableDataRequest $request, $model)
     {
