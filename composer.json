@@ -1,0 +1,25 @@
+{
+    "name": "braceyourself/eloquent-vue-table",
+    "authors": [
+        {
+            "name": "Ethan Brace",
+            "email": "ethanabrace@gmail.com"
+        }
+    ],
+    "require": {
+        "illuminate/support": "^5.8",
+        "laravel/framework": "^5.8"
+    },
+    "autoload": {
+        "psr-4": {
+            "Braceyourself\\EloquentVueTable\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Braceyourself\\EloquentVueTable\\EloquentVueTableProvider"
+            ]
+        }
+    }
+}
