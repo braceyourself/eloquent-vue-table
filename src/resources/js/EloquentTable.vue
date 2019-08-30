@@ -50,6 +50,7 @@
 <script>
     import uuid from 'uuid';
     import Client from './client';
+    import $ from 'jquery';
 
 
     const PAGES = [
@@ -141,7 +142,9 @@
 
             },
             loadData() {
-                this.client.get().then(res => {
+                this.client.get('?'+$.param({
+                    page:this.data.current_page
+                })).then(res => {
                     console.log('reloading data');
 
                     _.forEach(res.data.data, i => {

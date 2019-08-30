@@ -21,6 +21,11 @@ class ModelDataController extends Controller
         /** @var Model $class */
         $class = $this->getModelClass($model);
 
+        if ($request->query('sort_by')) {
+
+        }
+
+
         return $class::paginate($request->count);
     }
 

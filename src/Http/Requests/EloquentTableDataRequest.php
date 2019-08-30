@@ -4,6 +4,9 @@ namespace Braceyourself\EloquentVueTable\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @property mixed scopes
+ */
 class EloquentTableDataRequest extends FormRequest
 {
     /**
