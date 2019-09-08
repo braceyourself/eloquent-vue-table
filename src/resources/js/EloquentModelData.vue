@@ -10,8 +10,8 @@
             <i class="material-icons">more_vert</i>
         </td>
 
-        <td class="col" v-for="(value, key) in row" v-if="showColumn(key)">
-            <div v-if="typeof value === 'object'">
+        <td class="col" v-for="(value, key) in data" v-if="showColumn(key)">
+            <div v-if="columnIsArray(key)">
                 <button @click="viewObjectData(value)" class="btn btn-dark text-nowrap">
                     View Data
                 </button>
@@ -59,6 +59,9 @@
             }
         },
         methods: {
+            columnIsArray(key) {
+                return this.model_data.casts[key] === 'array';
+            },
             handleAction(action) {
                 this.$emit('action', {
                     action, model:this.row
