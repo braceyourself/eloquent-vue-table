@@ -73,6 +73,14 @@
                 data: {},
                 view_object: null,
                 selected_model: null,
+
+            }
+        },
+        watch: {
+            data:{
+                handler() {
+                    this.$emit('input',this.data)
+                }
             }
         },
         created() {
