@@ -74,7 +74,7 @@ class ModelDataController extends Controller
 
         $data = [
             'table' => $instance->getTable(),
-            'resource_slug' => Str::kebab($model),
+            'resource_slug' => Str::plural(Str::kebab($model)),
             'create' => false,
             'bulk_delete' => true,
             'total_count' => $class::count(),
