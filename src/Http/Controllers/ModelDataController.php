@@ -79,6 +79,7 @@ class ModelDataController extends Controller
             'bulk_delete' => true,
             'total_count' => $class::count(),
             'casts' => $instance->getCasts(),
+            'actions' => $instance->actions
         ];
 
         $data['columns'] = Schema::getColumnListing($data['table']);
@@ -94,6 +95,32 @@ class ModelDataController extends Controller
 
 
         return $data;
+    }
+
+    public function doAction(Request $request, $model, $id, $action)
+    {
+
+        try {
+            $instance = $this->getInstance($model, $id);
+            $output = $instance->$action();
+            $instance->refresh();
+
+            $message = 'Done';
+            $status = 'success';
+
+        } catch (\Exception $e) {
+            $message = $e->getMessage();
+            $status = 'error';
+        }
+
+
+        return response([
+            'message' =>  $message,
+            'data' => $instance->getAttributes(),
+            'output' => $output,
+            'status' => $status
+        ]);
+
     }
 
     private function getModelClass($model)
