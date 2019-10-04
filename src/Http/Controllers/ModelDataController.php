@@ -68,7 +68,6 @@ class ModelDataController extends Controller
         $class = $this->getModelClass($model);
 
 
-
         /** @var Model $instance */
         $instance = new $class();
         $reflect = new \ReflectionClass($class);
@@ -78,7 +77,7 @@ class ModelDataController extends Controller
 
         $data = [
             'table' => $instance->getTable(),
-            'resource_slug' => Str::plural(Str::kebab($model)),
+            'resource_slug' => $this->getSlug($model),
             'create' => false,
             'bulk_delete' => true,
             'total_count' => $class::count(),
@@ -141,6 +140,17 @@ class ModelDataController extends Controller
     {
         $class = $this->getModelClass($model);
         return $class::find($id);
+    }
+
+    private function getSlug($model)
+    {
+        $slug = Str::kebab(Str::plural($model));
+
+        if (Str::endsWith($slug, 'datas')) {
+            $slug = str_replace('datas', 'data', $slug);
+        }
+
+        return $slug;
     }
 
 }
