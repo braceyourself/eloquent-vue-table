@@ -3,6 +3,7 @@
 namespace Braceyourself\EloquentVueTable\Http\Controllers;
 
 use Braceyourself\EloquentVueTable\Http\Requests\EloquentTableDataRequest;
+use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Request;
@@ -65,6 +66,9 @@ class ModelDataController extends Controller
     public function meta($model)
     {
         $class = $this->getModelClass($model);
+
+
+
         /** @var Model $instance */
         $instance = new $class();
         $reflect = new \ReflectionClass($class);
@@ -115,8 +119,8 @@ class ModelDataController extends Controller
 
 
         return response([
-            'message' =>  $message,
-            'data' => $instance->getAttributes(),
+            'message' => $message,
+            'data' => $instance instanceof Arrayable ? $instance : null,
             'output' => $output,
             'status' => $status
         ]);
@@ -125,6 +129,11 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
+        if (class_exists("App\\$model")) {
+            return "App\\$model";
+        }
+
+
         return "App\\" . Str::singular(Str::studly($model));
     }
 
