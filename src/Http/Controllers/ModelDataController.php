@@ -128,11 +128,13 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
+        // return the class if it exists
         if (class_exists("App\\$model")) {
             return "App\\$model";
         }
 
 
+        // otherwise, return the singularized version of the class name if available
         return "App\\" . Str::singular(Str::studly($model));
     }
 
