@@ -6,6 +6,8 @@ use Braceyourself\EloquentVueTable\Http\Requests\EloquentTableDataRequest;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -17,17 +19,34 @@ class ModelDataController extends Controller
         $this->middleware('auth:api');
     }
 
-    public function index(EloquentTableDataRequest $request, $model)
+    public function index(EloquentTableDataRequest $request, $namespace, $model)
     {
-        /** @var Model $class */
-        $class = $this->getModelClass($model);
+        $query = $request->query();
+        $namespace = Str::studly($namespace);
+        $model = Str::studly($model);
 
-        if ($request->query('sort_by')) {
+        /** @var Model $class */
+        $class = $this->getModelClass("$namespace\\$model");
+
+
+        if ($scope = Arr::pull($query, 'scope')) {
+            $scope = explode('scope', $request->scope)[1];
+
+            $builder = $class::$scope();
+        } else $builder = $class::query();
+
+
+        foreach ($query as $key => $value) {
+            if (Schema::connection((new $class)->getConnectionName())->hasColumn((new $class)->getTable(), Str::upper($key))) {
+                $builder = $builder->where($key, $value);
+            }
+        }
+
+        if ($sort = Arr::pull($query, 'sort_by')) {
 
         }
 
-
-        return $class::paginate($request->count);
+        return $builder->paginate();
     }
 
     public function store()
@@ -35,9 +54,9 @@ class ModelDataController extends Controller
 
     }
 
-    public function show()
+    public function show(Request $request, $model)
     {
-
+        return $model;
     }
 
     public function update()
@@ -71,21 +90,20 @@ class ModelDataController extends Controller
         /** @var Model $instance */
         $instance = new $class();
         $reflect = new \ReflectionClass($class);
-        $methods = collect($reflect->getMethods())->filter(function ($method) use ($class) {
-            return $method->class == $class;
-        });
+        $methods = collect($reflect->getMethods());
 
         $data = [
             'table' => $instance->getTable(),
             'resource_slug' => $this->getSlug($model),
-            'create' => false,
-            'bulk_delete' => true,
+//            'create' => false,
+//            'bulk_delete' => false,
             'total_count' => $class::count(),
             'casts' => $instance->getCasts(),
             'actions' => $instance->actions
         ];
 
-        $data['columns'] = Schema::getColumnListing($data['table']);
+        $data['columns'] = Schema::connection($instance->getConnectionName())
+            ->getColumnListing($data['table']);
         $data['fillable'] = $instance->getFillable();
 
         $data['scopes'] = $methods->filter(function ($method) {
@@ -128,12 +146,18 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
-        if (class_exists("App\\$model")) {
-            return "App\\$model";
+
+        if (!Str::startsWith($model, 'App\\')) {
+            $model = "App\\$model";
         }
 
 
-        return "App\\" . Str::singular(Str::studly($model));
+        if (class_exists($model)) {
+            return $model;
+        }
+
+
+        return Str::singular(Str::studly($model));
     }
 
     private function getInstance($model, $id)
@@ -144,13 +168,19 @@ class ModelDataController extends Controller
 
     private function getSlug($model)
     {
-        $slug = Str::kebab(Str::plural($model));
-
-        if (Str::endsWith($slug, 'datas')) {
-            $slug = str_replace('datas', 'data', $slug);
+        $parts = explode('\\', $model);
+        foreach ($parts as $k => $part) {
+            $parts[$k] = Str::kebab($part);
         }
 
-        return $slug;
+        $parts[array_key_last($parts)] = Str::plural(Arr::last($parts));
+
+        if (Str::endsWith(Arr::last($parts), 'datas')) {
+            $parts[array_key_last($parts)] = str_replace('datas', 'data', $part);
+        }
+
+
+        return implode('/', $parts);
     }
 
 }
