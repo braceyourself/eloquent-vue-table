@@ -146,7 +146,6 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
-
         if (!Str::startsWith($model, 'App\\')) {
             $model = "App\\$model";
         }
