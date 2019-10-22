@@ -38,7 +38,17 @@ class ModelDataController extends Controller
 
         foreach ($query as $key => $value) {
             if (Schema::connection((new $class)->getConnectionName())->hasColumn((new $class)->getTable(), Str::upper($key))) {
-                $builder = $builder->where($key, $value);
+                $value = [$value];
+                if (Str::contains($value[0], ':')) {
+                    $value = explode(':', $value[0]);
+                }
+
+                if ($value[0] === 'like') {
+                    $value[1] = '%' . $value[1] . '%';
+                }
+//                dd($key, ...$value);
+
+                $builder = $builder->where($key, ...$value);
             }
         }
 
@@ -167,13 +177,22 @@ class ModelDataController extends Controller
 
     private function getSlug($model)
     {
+        if (!Str::startsWith(Str::lower($model), 'app')) {
+            $model = "App\\$model";
+        }
+
         $parts = explode('\\', $model);
+
+
         foreach ($parts as $k => $part) {
             $parts[$k] = Str::kebab($part);
         }
 
+
         $parts[array_key_last($parts)] = Str::plural(Arr::last($parts));
 
+
+        // don't use 'datum'
         if (Str::endsWith(Arr::last($parts), 'datas')) {
             $parts[array_key_last($parts)] = str_replace('datas', 'data', $part);
         }
