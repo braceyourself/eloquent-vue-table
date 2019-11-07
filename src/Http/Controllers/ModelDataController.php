@@ -77,12 +77,15 @@ class ModelDataController extends Controller
         $model = $namespace."\\".Str::studly(Str::singular($model));
         $instance = $model::find($id);
 
-        $instance->fill($request->all());
-	$instance->save();
+
+        $saved = $instance->update(collect($request->all())->mapWithKeys(function($v, $k){
+            return [strtolower($k) => $v];
+        })->toArray());
+
 
         return response([
-            'message' => 'Updated',
-            'status' => 'success',
+            'message' => $saved? 'Updated':'Error',
+            'status' => $saved? 'success':'error',
             'model' => $instance->getAttributes()
         ]);
 
