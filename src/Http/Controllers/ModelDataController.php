@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use TCG\Voyager\Models\Role;
@@ -71,7 +71,7 @@ class ModelDataController extends Controller
         return $model;
     }
 
-    public function update(\Illuminate\Http\Request $request, $namespace, $model, $id)
+    public function update(Request $request, $namespace, $model, $id)
     {
         $namespace = Str::studly($namespace);
         $model = $namespace."\\".Str::studly(Str::singular($model));
@@ -150,10 +150,12 @@ class ModelDataController extends Controller
         return $data;
     }
 
-    public function doAction(Request $request, $model, $id, $action)
+    public function doAction(Request $request, $namespace, $model, $id, $action)
     {
+        $model = Str::studly($namespace).'\\'.Str::studly(Str::singular($model));
 
         try {
+
             $instance = $this->getInstance($model, $id);
             $output = $instance->$action();
             $instance->refresh();
@@ -178,7 +180,7 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
-        if (!Str::startsWith($model, 'App\\')) {
+        if (!Str::startsWith(strtolower($model), 'app\\')) {
             $model = "App\\$model";
         }
 
