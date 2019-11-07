@@ -5,12 +5,14 @@ namespace Braceyourself\EloquentVueTable\Http\Controllers;
 use Braceyourself\EloquentVueTable\Http\Requests\EloquentTableDataRequest;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
+use TCG\Voyager\Models\Role;
 
 class ModelDataController extends Controller
 {
@@ -92,15 +94,20 @@ class ModelDataController extends Controller
 
     }
 
-    public function meta($model)
+    public function meta(Request $request, $model)
     {
         $class = $this->getModelClass($model);
+
 
 
         /** @var Model $instance */
         $instance = new $class();
         $reflect = new \ReflectionClass($class);
         $methods = collect($reflect->getMethods());
+
+
+
+
 
         $data = [
             'table' => $instance->getTable(),
