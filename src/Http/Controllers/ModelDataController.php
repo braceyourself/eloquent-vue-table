@@ -71,8 +71,18 @@ class ModelDataController extends Controller
         return $model;
     }
 
-    public function update()
+    public function update(\Illuminate\Http\Request $request, $namespace, $model, $id)
     {
+        $namespace = Str::studly($namespace);
+        $model = $namespace."\\".Str::studly(Str::singular($model));
+        $instance = $model::find($id);
+        $instance->fill($request->all());
+
+        return response([
+            'message' => 'Updated',
+            'status' => 'success',
+            'model' => $instance->getAttributes()
+        ]);
 
     }
 
