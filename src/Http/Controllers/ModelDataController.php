@@ -76,7 +76,9 @@ class ModelDataController extends Controller
         $namespace = Str::studly($namespace);
         $model = $namespace."\\".Str::studly(Str::singular($model));
         $instance = $model::find($id);
+
         $instance->fill($request->all());
+	$instance->save();
 
         return response([
             'message' => 'Updated',
