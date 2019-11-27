@@ -61,9 +61,16 @@ class ModelDataController extends Controller
         return $builder->paginate();
     }
 
-    public function store()
+    public function store(Request $request, $namespace, $model)
     {
+        $model = $this->getModelClass("$namespace\\$model");
+        $model = $model::create($request->all());
 
+        return response([
+            'message' => 'New Model Created',
+            'status' =>'success',
+            'model' => $model
+        ]);
     }
 
     public function show(Request $request, $model)
