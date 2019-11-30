@@ -131,7 +131,8 @@ class ModelDataController extends Controller
 //            'bulk_delete' => false,
             'total_count' => $class::count(),
             'casts' => $instance->getCasts(),
-            'actions' => $instance->actions
+            'actions' => $instance->actions,
+			'hidden' => $instance->getHidden()
         ];
 
         $data['columns'] = Schema::connection($instance->getConnectionName())
