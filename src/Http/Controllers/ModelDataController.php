@@ -144,15 +144,15 @@ class ModelDataController extends Controller
 //            'bulk_delete' => false,
             'total_count' => $class::count(),
             'casts' => $instance->getCasts(),
-            'actions' => $instance->getActions(),
+            'actions' => $instance->actions ?? [],
             'hidden' => $instance->getHidden()
         ];
 
-        $data['columns'] = $instance->getTableColumns();
+        $data['columns'] = EloquentVueTable::getColumns($instance);
 
         $data['fillable'] = $instance->getFillable();
 
-        $data['scopes'] = $instance->getScopes();
+        $data['scopes'] = EloquentVueTable::getScopes($instance);
 
         $appends = $instance->appends;
 

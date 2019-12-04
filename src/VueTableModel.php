@@ -16,9 +16,9 @@ abstract class VueTableModel extends Model
 
     public function meta()
     {
-        return tap(EloquntVueTable::getMetaFields(), function (&$fields) {
+        return tap(EloquentVueTable::getMetaFields(), function (&$fields) {
             $fields = collect($fields)->mapWithKeys(function ($field) {
-                return [$item => static::getFieldValue($field)];
+                return [$field => static::getFieldValue($field)];
             });
         });
     }
@@ -26,25 +26,20 @@ abstract class VueTableModel extends Model
 
     public static function getFieldValue($field)
     {
-        $inst = static::newInstance();
+        $inst = new static();
 
-        return $inst->{Str::camel("get$field")}();
+        return $inst->{Str::camel("get_$field")}();
     }
 
 
-    public function getTableColumns()
+    public function getColumns()
     {
-        return EloquntVueTable::getTableColumns($this);
+        return EloquentVueTable::getColumns($this);
     }
 
     public function getScopes()
     {
-        $reflection = new \ReflectionClass($this);
-        $methods = $reflection->getMethods();
-
-        return $methods->filter(function ($method) {
-            return Str::startsWith($method->name, 'scope');
-        });
+        return EloquentVueTable::getScopes($this);
     }
 
     public function getActions()
@@ -57,14 +52,18 @@ abstract class VueTableModel extends Model
         return static::count();
     }
 
-    public function getSlug()
+    public function getResourceSlug()
     {
-        return tap(collect(explode('\\', static::class)), function (Collection &$collection) {
-            $collection->map(function ($i) {
+        $collection = collect(explode('\\', static::class))
+            ->map(function ($i) {
                 return Str::kebab($i);
-            })->push(Str::plural($collection->pop()));
-        });
+            })->filter(function($i){
+                return strtolower($i) !== 'app';
+            });
 
+        $collection->push(Str::plural($collection->pop()))->implode('-');
+
+        return $collection->implode('\\');
 
     }
 }
