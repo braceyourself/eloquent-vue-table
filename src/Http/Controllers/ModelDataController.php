@@ -2,7 +2,10 @@
 
 namespace Braceyourself\EloquentVueTable\Http\Controllers;
 
+use Braceyourself\EloquentVueTable\EloquentVueTable;
+
 use Braceyourself\EloquentVueTable\Http\Requests\EloquentTableDataRequest;
+use Braceyourself\EloquentVueTable\VueTableModel;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -68,7 +71,7 @@ class ModelDataController extends Controller
 
         return response([
             'message' => 'New Model Created',
-            'status' =>'success',
+            'status' => 'success',
             'model' => $model
         ]);
     }
@@ -81,18 +84,18 @@ class ModelDataController extends Controller
     public function update(Request $request, $namespace, $model, $id)
     {
         $namespace = Str::studly($namespace);
-        $model = $namespace."\\".Str::studly(Str::singular($model));
+        $model = $namespace . "\\" . Str::studly(Str::singular($model));
         $instance = $model::find($id);
 
 
-        $saved = $instance->update(collect($request->all())->mapWithKeys(function($v, $k){
+        $saved = $instance->update(collect($request->all())->mapWithKeys(function ($v, $k) {
             return [strtolower($k) => $v];
         })->toArray());
 
 
         return response([
-            'message' => $saved? 'Updated':'Error',
-            'status' => $saved? 'success':'error',
+            'message' => $saved ? 'Updated' : 'Error',
+            'status' => $saved ? 'success' : 'error',
             'model' => $instance->getAttributes()
         ]);
 
@@ -118,16 +121,19 @@ class ModelDataController extends Controller
 
     public function meta(Request $request, $model)
     {
+
         $class = $this->getModelClass($model);
-
-
 
         /** @var Model $instance */
         $instance = new $class();
-        $reflect = new \ReflectionClass($class);
-        $methods = collect($reflect->getMethods());
 
 
+        if ($instance instanceof VueTableModel) {
+            return $instance->meta();
+        }
+
+
+        $fields = EloquentVueTable::getMetaFields();
 
 
 
@@ -138,18 +144,18 @@ class ModelDataController extends Controller
 //            'bulk_delete' => false,
             'total_count' => $class::count(),
             'casts' => $instance->getCasts(),
-            'actions' => $instance->actions
+            'actions' => $instance->actions ?? [],
+            'hidden' => $instance->getHidden()
         ];
 
-        $data['columns'] = Schema::connection($instance->getConnectionName())
-            ->getColumnListing($data['table']);
+        $data['columns'] = EloquentVueTable::getColumns($instance);
+
         $data['fillable'] = $instance->getFillable();
 
-        $data['scopes'] = $methods->filter(function ($method) {
-            return Str::startsWith($method->name, 'scope');
-        });
+        $data['scopes'] = EloquentVueTable::getScopes($instance);
 
         $appends = $instance->appends;
+
         $data['columns'] = array_diff($data['columns'], $instance->getHidden());
         $data['columns'] = array_merge($data['columns'], $appends ?? []);
 
@@ -159,7 +165,7 @@ class ModelDataController extends Controller
 
     public function doAction(Request $request, $namespace, $model, $id, $action)
     {
-        $model = Str::studly($namespace).'\\'.Str::studly(Str::singular($model));
+        $model = Str::studly($namespace) . '\\' . Str::studly(Str::singular($model));
 
         try {
 
@@ -188,6 +194,7 @@ class ModelDataController extends Controller
 
     private function getModelClass($model)
     {
+
         if (!Str::startsWith(strtolower($model), 'app\\')) {
             $model = "App\\$model";
         }
@@ -197,8 +204,12 @@ class ModelDataController extends Controller
             return $model;
         }
 
+        $model = collect(explode('\\', $model))->map(function ($part) {
+            return Str::studly($part);
+        })->join('\\');
 
-        return Str::singular(Str::studly($model));
+
+        return Str::singular($model);
     }
 
     private function getInstance($model, $id)
@@ -209,6 +220,7 @@ class ModelDataController extends Controller
 
     private function getSlug($model)
     {
+
         if (!Str::startsWith(Str::lower($model), 'app')) {
             $model = "App\\$model";
         }
