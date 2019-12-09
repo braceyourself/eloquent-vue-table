@@ -1,6 +1,7 @@
 <?php namespace Braceyourself\EloquentVueTable;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Prophecy\Exception\Doubler\MethodNotFoundException;
@@ -40,13 +41,18 @@ class EloquentVueTable
      */
     public static function getColumns($instance)
     {
-        return Schema::connection($instance->getConnectionName())
-            ->getColumnListing($instance->getTable());
+        $conn = $instance->getConnectionName();
+        $table = $instance->getTable();
+
+        return Cache::remember("$conn.$table.column-listing", 120, function () use ($table, $conn) {
+            return Schema::connection($conn)->getColumnListing($table);
+        });
 
     }
 
 
-    public static function getScopes($instance){
+    public static function getScopes($instance)
+    {
 
         $reflection = new \ReflectionClass($instance);
         $methods = collect($reflection->getMethods());

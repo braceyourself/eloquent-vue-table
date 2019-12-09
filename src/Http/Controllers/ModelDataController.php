@@ -169,8 +169,10 @@ class ModelDataController extends Controller
 
         try {
 
+            /** @var Model $instance */
             $instance = $this->getInstance($model, $id);
             $output = $instance->$action();
+
             $instance->refresh();
 
             $message = 'Done';
