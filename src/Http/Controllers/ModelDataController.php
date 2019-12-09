@@ -173,6 +173,7 @@ class ModelDataController extends Controller
         } catch (\Exception $e) {
             $message = $e->getMessage();
             $status = 'error';
+            $output = null;
         }
 
 
